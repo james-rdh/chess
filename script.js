@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function myFunction() {
+  // this function will create the right-sized game board in the right place on the screen
   function initialiseBoard() {
     const board = document.querySelector("#board");
     board.style.display = "grid"
@@ -16,7 +17,10 @@ function myFunction() {
       square.setAttribute("square-id", i);
       board.appendChild(square);
     }
+  
+    // this function will create the starting position for the board
     
+    // want a class-based approach
   }
   initialiseBoard()
 
