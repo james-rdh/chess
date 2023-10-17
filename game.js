@@ -1,30 +1,41 @@
 class Game {
   constructor() {
-    this.board = new Board();
-    this.players = [];
+    this.players = [null, null];
     this.currentPlayer = null;
+    this.moveCounter = 0;
+    this.fiftyMoveCounter = 0;
+    this.positionHistory = [];
   }
 
   setup() {
-    const player1Name = prompt("Enter Player 1 name: ");
-    const player2Name = prompt("Enter Player 2 name: ");
+    this.setupPlayers();
+    this.setupBoard();
+    this.setupPieces();
+  }
+
+  setupPlayers() {
+    // const player1Name = prompt("Enter Player 1 name: ");
+    // const player2Name = prompt("Enter Player 2 name: ");
+    const player1Name = "Guest 1"
+    const player2Name = "Guest 2"
 
     const player1Color = "white";
     const player2Color = "black";
 
-    this.player1 = new Player(player1Name, player1Color);
-    this.player2 = new Player(player2Name, player2Color);
+    const player1 = new Player(player1Name, player1Color);
+    const player2 = new Player(player2Name, player2Color);
 
-    this.players = [this.player1, this.player2];
+    this.players = [player1, player2];
 
-    this.setupPieces();
+    this.currentPlayer = this.players[0];
+  }
 
-    this.currentPlayer = this.player1;
-
-    this.start();
+  setupBoard() {
+    this.board = new Board();
   }
 
   setupPieces() {
+    // place pieces in relevant board positions
     for (let file = 0; file < 8; file++) {
       this.board.setPiece(new Pawn("white"), 1, file);
       this.board.setPiece(new Pawn("black"), 6, file);
@@ -54,39 +65,88 @@ class Game {
 
   start() {
     console.log("Chess Game started!");
-
+    // timer
+    // check for game-over
     while (!this.isGameOver()) {
-      this.board.display();
-
       console.log(`It's ${this.currentPlayer.getName()}'s turn (${this.currentPlayer.getColour()})`);
-      this.currentPlayer.makeMove(this.board);
-
+      // this.currentPlayer.makeMove(this.board); // current player makes a move
+      // check for events
       this.switchTurn();
     }
+  }
 
-    this.end();
+  end() {
+    console.log("Thanks for playing");
+  }
+
+  movePiece(startRank, startFile, endRank, endFile) {
+    const piece = this.board.getPiece(startRank, startFile);
+    if (piece instanceof Pawn || this.board.getPiece(endRank, endFile) !== null) {
+      this.fiftyMoveCounter = 0; // Reset the counter if it's a pawn move or capture
+    } else {
+      this.fiftyMoveCounter++; // Increment the counter
+    }
+    this.board.setPiece(piece, endRank, endFile);
+    this.board.setPiece(null, startRank, startFile);
+    this.positionHistory.push(this.getPosition());
+    if (this.currentPlayer === "white") {
+      this.moveCounter++;
+    }
   }
 
   switchTurn() {
-    if (this.currentPlayer === this.player1) {
-      this.currentPlayer = this.player2;
+    if (this.currentPlayer === this.players[0]) {
+      this.currentPlayer = this.players[1];
     } else {
-      this.currentPlayer = this.player1;
+      this.currentPlayer = this.players[0];
     }
   }
 
+  isCheckmate(colour) {
+    // Check if the king is in check
+    if (!this.isInCheck(colour)) {
+      return false;
+    }
+    // Check if the king can escape check or if any piece can block the check
+    for (let rank = 0; rank < 8; rank++) {
+      for (let file = 0; file < 8; file++) {
+        const piece = this.getPiece(rank, file);
+        if (piece !== null && piece.colour === colour) {
+          const validMoves = piece.getValidMoves(rank, file);
+          for (const move of validMoves) {
+            if (!this.isInCheck(colour)) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  isInsufficientMaterial() {
+    return !pieces.some(piece => piece instanceof Pawn) && pieces.length <= 1;
+  }
+
+  isStalemate() {
+    return false;
+  }
+
+  // isDraw {
+  //   return isInsufficientMaterial() || isThreefoldRepetition() || isFiftyMoveRule();
+  // }
+
   isGameOver() {
-    if (this.board.isCheckmate(this.currentPlayer.getColour())) {
+    if (this.isCheckmate(this.currentPlayer.getColour())) {
       console.log(`Checkmate! ${this.currentPlayer.getName()} (${this.currentPlayer.getColour()}) wins!`);
       return true;
     }
 
-    if (this.board.isStalemate(this.currentPlayer.getColour())) {
+    if (this.isStalemate(this.currentPlayer.getColour())) {
       console.log("Stalemate! The game is a draw.");
       return true;
     }
 
-    if (this.board.isDraw()) {
+    if (this.isDraw()) {
       console.log("The game is a draw.");
       return true;
     }
@@ -94,7 +154,4 @@ class Game {
     return false;
   }
 
-  end() {
-    console.log("Thanks for playing");
-  }
 }

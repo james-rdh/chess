@@ -1,17 +1,8 @@
 class Board {
   constructor() {
     this.board = new Array(8).fill(new Array(8).fill(null));
-    this.positionHistory = [];
-    this.fiftyMoveCounter = 0;
-  }
-
-  initialiseBoard() {
-    // Create the board as an 8x8 grid
-    const board = document.querySelector("#game-board");
-    board.style.display = "grid"
-    board.style.gridTemplateColumns = "repeat(8, 1fr)";
-    board.style.gridTemplateRows = "repeat(8, 1fr)";
     // Create a CSS grid item for each square on the chess board.
+    const board = document.querySelector("#game-board")
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
         const square = document.createElement("div");
@@ -43,25 +34,25 @@ class Board {
 //     }
 //   }
 
-//   getPiece(rank, file) {
-//     return this.board[rank][file];
-//   }
+  getPiece(rank, file) {
+    return this.board[rank][file];
+  }
 
-//   setPiece(piece, rank, file) {
-//     this.board[rank][file] = piece;
-//   }
+  setPiece(piece, rank, file) {
+    this.board[rank][file] = piece;
+  }
 
-//   movePiece(startRank, startFile, endRank, endFile) {
-//     const piece = this.getPiece(startRank, startFile);
-//     if (piece instanceof Pawn || this.getPiece(endRank, endFile) !== null) {
-//       this.fiftyMoveCounter = 0; // Reset the counter if it's a pawn move or capture
-//     } else {
-//       this.fiftyMoveCounter++; // Increment the counter
-//     }
-//     this.setPiece(piece, endRank, endFile);
-//     this.setPiece(null, startRank, startFile);
-//     this.positionHistory.push(this.getPosition());
-//   }
+  movePiece(startRank, startFile, endRank, endFile) {
+    const piece = this.getPiece(startRank, startFile);
+    if (piece instanceof Pawn || this.getPiece(endRank, endFile) !== null) {
+      this.fiftyMoveCounter = 0; // Reset the counter if it's a pawn move or capture
+    } else {
+      this.fiftyMoveCounter++; // Increment the counter
+    }
+    this.setPiece(piece, endRank, endFile);
+    this.setPiece(null, startRank, startFile);
+    this.positionHistory.push(this.getPosition());
+  }
 
 //   isValidMove(move) {
 //     // Check if the move is within the board bounds
