@@ -11,9 +11,9 @@ class Player {
     this.name = name;
   }
 
-  movePiece() {
-    return
-  }
+  // movePiece() {
+  //   return
+  // }
 
   // new game
 

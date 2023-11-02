@@ -1,82 +1,137 @@
+/*
+board.history
+push the starting position
+push whenever a piece "moves"
+*/
 class Board {
   constructor() {
     this.position = Array.from({ length: 8 }, () => new Array(8).fill(null));
     this.positionHistory = [];
+    this.display = null;
+    this.newDisplay();
   }
 
-  setupStartingPosition() {
-    // Place pawns
-    for (let file = 0; file < 8; file++) {
-      this.placePiece(1, file, new Pawn("white"));
-      this.placePiece(6, file, new Pawn("black"));
-    }
-    // Place minor pieces
-    this.placePiece(0, 1, new Knight("white"));
-    this.placePiece(0, 6, new Knight("white"));
-    this.placePiece(7, 1, new Knight("black"));
-    this.placePiece(7, 6, new Knight("black"));
-    this.placePiece(0, 2, new Bishop("white"));
-    this.placePiece(0, 5, new Bishop("white"));
-    this.placePiece(7, 2, new Bishop("black"));
-    this.placePiece(7, 5, new Bishop("black"));
-    // Place major pieces
-    this.placePiece(0, 0, new Rook("white"));
-    this.placePiece(0, 7, new Rook("white"));
-    this.placePiece(7, 0, new Rook("black"));
-    this.placePiece(7, 7, new Rook("black"));
-    this.placePiece(0, 3, new Queen("white"));
-    this.placePiece(7, 3, new Queen("black"));
-    // Place kings
-    this.placePiece(0, 4, new King("white"));
-    this.placePiece(7, 4, new King("black"));
-  }
-
-  display() {
-    // Create a CSS grid item for each square on the chess board.
-    const board = document.querySelector("#board")
-    for (let i = 0; i < 8; i++) {
-      for (let j = 0; j < 8; j++) {
+  newDisplay() {
+    this.display = document.createElement("div");
+    this.display.classList.add("board");
+    for (let row = 0; row < 8; row++) {
+      for (let column = 0; column < 8; column++) {
         const square = document.createElement("div");
-        if ((i + j) % 2 === 0) {
-          square.className = "square-white";
+        square.className = "square";
+        if ((row + column) % 2 === 0) {
+          square.classList.add("white");
         } else {
-          square.className = "square-black";
+          square.classList.add("black");
         }
-        board.appendChild(square);
+        this.display.appendChild(square);
       }
     }
   }
 
-  getPiece(rank, file) {
-    return this.position[rank][file];
+  refreshDisplay() {
+    for (let row = 0; row < 8; row++) {
+      for (let column = 0; column < 8; column++) {
+        const piece = this.getPiece(row, column);
+        const index = row * 8 + column;
+        const square = this.display.childNodes[index];
+        square.innerHTML = (piece instanceof Piece) ? piece.display.outerHTML : "";
+      }
+    }
   }
 
-  placePiece(rank, file, piece) {
-    this.position[rank][file] = piece;
+  getPiece(row, column) {
+    return this.position.at(row)[column];
   }
 
-  removePiece(rank, file) {
-    this.position[rank][file] = null;
+  setPiece(row, column, piece) {
+    this.position.at(row)[column] = piece;
+    const index = row * 8 + column;
+    const square = this.display.childNodes[index];
+    square.innerHTML = (piece instanceof Piece) ? piece.display.outerHTML : "";
   }
 
-  movePiece(startRank, startFile, endRank, endFile) {
-    const piece = this.getPiece(startRank, startFile);
-    removePiece(startRank, startFile);
-    placePiece(endRank, endFile, piece);
+  getPosition() {
+    return this.position;
   }
 
-  isWithinBounds(startRank, startFile, endRank, endFile) {
-    return startRank >= 0 && startRank <= 7 &&
-      startFile >= 0 && startFile <= 7 &&
-      endRank >= 0 && endRank <= 7 &&
-      endFile >= 0 && endFile <= 7
+  setPosition(id) {
+    if (id="starting") {
+      // Pawns
+      for (let column = 0; column < 8; column++) {
+        this.setPiece(6, column, new Pawn("white"));
+        this.setPiece(1, column, new Pawn("black"));
+      }
+      // Knights
+      this.setPiece(0, 1, new Knight("black"));
+      this.setPiece(0, 6, new Knight("black"));
+      this.setPiece(7, 1, new Knight("white"));
+      this.setPiece(7, 6, new Knight("white"));
+      // Bishops
+      this.setPiece(0, 2, new Bishop("black"));
+      this.setPiece(0, 5, new Bishop("black"));
+      this.setPiece(7, 2, new Bishop("white"));
+      this.setPiece(7, 8 - 3, new Bishop("white"));
+      // Rooks
+      this.setPiece(0, 0, new Rook("black"));
+      this.setPiece(0, 7, new Rook("black"));
+      this.setPiece(7, 0, new Rook("white"));
+      this.setPiece(7, 7, new Rook("white"));
+      // Queens
+      this.setPiece(0, 3, new Queen("black"));
+      this.setPiece(7, 3, new Queen("white"));
+      // Kings
+      this.setPiece(0, 4, new King("black"));
+      this.setPiece(7, 4, new King("white"));
+    }
   }
 
-  getPieces() {
+  movePiece(startRow, startColumn, endRow, endColumn) {
+    const piece = this.getPiece(startRow, startColumn);
+    setPiece(endRow, endColumn, piece);
+    setPiece(startRow, startColumn, null);
+    this.positionHistory.push(this.position);
+  }
+
+  isWithinBounds(startRow, startColumn, endRow, endColumn) {
+    return startRow >= 0 && startRow < 8 &&
+      startColumn >= 0 && startColumn < 8 &&
+      endRow >= 0 && endRow < 8 &&
+      endColumn >= 0 && endColumn < 8;
+  }
+
+  isValidMove(startRow, startColumn, endRow, endColumn) {
+    if (!this.isWithinBounds(startRow, startColumn, endRow, endColumn)) {
+      return false;
+    }
+    const piece = this.getPiece(startRow, startColumn);
+    if (!(piece instanceof Piece)) {
+      return false;
+    }
+    if (!piece.isValidMove(startRow, startColumn, endRow, endColumn)) {
+      return false;
+    }
+    // this.getPiece(startRow, startColumn).isValidMove()
+  }
+
+  // getValidMoves(startRow, startColumn) {
+  //   const moves = [];
+  //   const piece = this.getPiece(startRow, startColumn);
+  //   const size = 8;
+  //   if (
+  //     startRow >= 1 && startRow <= size &&
+  //     startColumn >= 1 && startColumn <= size
+  //   ) {
+  //     validMoves = this.getPiece(startRow, startColumn).getValidMoves();
+  //     // remove valid moves that are invalid board moves
+  //   }
+  //   return validMoves;
+  // }
+
+  getPieces() { //! replace with foreach
     const pieces = [];
-    for (let rank = 0; rank < 8; rank++) {
-      for (let file = 0; file < 8; file++) {
-        const piece = this.getPiece(rank, file);
+    for (let row = 0; row < 8; row++) {
+      for (let column = 0; column < 8; column++) {
+        const piece = this.getPiece(row, column);
         if (piece instanceof Piece) {
           pieces.push(piece);
         }
@@ -85,24 +140,11 @@ class Board {
     return pieces;
   }
 
-  countPieces() {
-    let pieceCount = 0;
-    for (let rank = 0; rank < 8; rank++) {
-      for (let file = 0; file < 8; file++) {
-        const piece = this.getPiece(rank, file);
-        if (piece instanceof Piece) {
-          pieceCount++;
-        }
-      }
-    }
-    return pieceCount;
-  }
-
-  getPiecesByColour(colour) {
+  getPiecesByColour(colour) { //! replace with foreach
     const pieces = [];
-    for (let rank = 0; rank < 8; rank++) {
-      for (let file = 0; file < 8; file++) {
-        const piece = this.getPiece(rank, file);
+    for (let row = 0; row < 8; row++) {
+      for (let column = 0; column < 8; column++) {
+        const piece = this.getPiece(row, column);
         if (piece instanceof Piece && piece.colour === colour) {
           pieces.push(piece);
         }
@@ -111,11 +153,24 @@ class Board {
     return pieces;
   }
 
-  countPiecesByColour(colour) {
+  countPieces() { //! replace with foreach
     let pieceCount = 0;
-    for (let rank = 0; rank < 8; rank++) {
-      for (let file = 0; file < 8; file++) {
-        const piece = this.getPiece(rank, file);
+    for (let row = 0; row < 8; row++) {
+      for (let column = 0; column < 8; column++) {
+        const piece = this.getPiece(row, column);
+        if (piece instanceof Piece) {
+          pieceCount++;
+        }
+      }
+    }
+    return pieceCount;
+  }
+
+  countPiecesByColour(colour) { //! replace with foreach
+    let pieceCount = 0;
+    for (let row = 0; row < 8; row++) {
+      for (let column = 0; column < 8; column++) {
+        const piece = this.getPiece(row, column);
         if (piece instanceof Piece && piece.colour === colour) {
           pieceCount++;
         }
@@ -124,16 +179,16 @@ class Board {
     return pieceCount;
   }
 
-  findKing(colour) {
-    for (let rank = 0; rank < 8; rank++) {
-      for (let file = 0; file < 8; file++) {
-        const piece = this.getPiece(rank, file);
+  findKing(colour) { //! replace with foreach
+    for (let row = 0; row < 8; row++) {
+      for (let column = 0; column < 8; column++) {
+        const piece = this.getPiece(row, column);
         if (piece instanceof King && piece.colour === colour) {
-          return [rank, file];
+          return [row, column];
         }
       }
     }
-    return [null, null];
+    return null;
   }
 
   // isThreefoldRepetition() {
