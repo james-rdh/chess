@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const opponent = new Player("Player 2");
     const playsWhite = true;
     const game = playsWhite ? new Game(player, opponent) : new Game(opponent, player);
-    game.newDisplay();
     display.replaceChild(game.display, menu);
     game.start();
     }

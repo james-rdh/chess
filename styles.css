@@ -54,6 +54,7 @@ main {
   width: 100%;
   display: flex;
   overflow: hidden;
+  z-index: 2;
 }
 
 .square.white {
@@ -71,4 +72,5 @@ main {
   align-items: center;
   justify-content: center;
   font-size: 6rem;
+  z-index: -2;
 }

@@ -3,21 +3,14 @@ class Player {
     this.name = name;
   }
 
-  getName() {
-    return this.name;
-  }
-
-  setName(name) {
-    this.name = name;
-  }
-
   // movePiece() {
   //   return
   // }
 
-  // new game
+  // player actions
 
   // offer draw
 
   // resign
 }
+// interacts with the game

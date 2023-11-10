@@ -1,84 +1,76 @@
 class Piece {
-  constructor(colour, value = null) {
+  constructor(colour) {
     this.colour = colour;
-    this.value = value;
+    this.row = null;
+    this.column = null;
   }
 
-  isValidMove(startRank, startFile, endRank, endFile) {
-    return startRank !== endRank || startFile !== endFile;
+  isValidMove(row, column) {
+    return row !== this.row || column !== this.column;
+  }
+
+  movePiece(row, column) {
+    this.row = row;
+    this.column = column;
   }
 }
 
 // -------------- PAWN --------------- //
 
 class Pawn extends Piece {
-  constructor(colour, value = 1) {
-    super(colour, value);
-    this.direction = this.colour === "white" ? 1 : -1;
+  constructor(colour, row, column) {
+    super(colour);
+    this.row = row;
+    this.column = column;
+    this.value = 1;
+    this.direction = this.colour === "white" ? -1 : 1;
     this.enpassant = null;
     this.display = document.createElement("span");
     this.display.innerText = this.colour === "white" ? "\u2659" : "\u265F";
   }
 
-  isValidMove(startRank, startFile, endRank, endFile) {
-    if (!super.isValidMove(startRank, startFile, endRank, endFile)) {
+  getMoveDirection() {
+    return [[this.direction, 0]];
+  }
+
+  isValidMove(row, column) {
+    if (!super.isValidMove(row, column)) {
       return false;
     }
-    if (startFile === endFile) {
-      if (endRank - startRank === this.direction) {
+    const rowChange = row - this.row;
+    const columnChange = column - this.column;
+    if (columnChange === 0) {
+      if (rowChange === this.direction) {
         return true;
       }
-      if (this.enpassant === null && endRank - startRank === 2 * this.direction) {
+      if (rowChange === 2 * this.direction && this.enpassant === null) {
         return true;
       }
+    }
     // isCaptureMove, check for capture moves
     // const captureMoves = this.getCaptureMoves();
     // moves.push(...captureMoves);
     // moves = moves.filter(([r, f]) => 0 <= r < boardSize && 0 <= f < boardSize);
-    }
     return false;
   }
 
-  // getValidMoves() {
-  //   const row = this.row;
-  //   const column = this.column;
-  //   const direction = this.direction;
-  //   const moves = [];
-  //   moves.push([row + direction, file]);
-  //   if (this.enpassant = null) {
-  //     moves.push([row + 2 * direction, file]);
-  //   }
-  //   const captureMoves = this.getCaptureMoves();
-  //   moves.push(...captureMoves);
-  //   // moves = moves.filter(([r, f]) => 0 <= r < boardSize && 0 <= f < boardSize);
-  //   return moves;
-  // }
-
-  // isValidCapture(rank, file) {
-  //   if (!super.isValidMove(startRank, startFile, endRank, endFile)) {
-  //     return false;
-  //   }
-  //   // Check if the target position contains an opponent's piece
-  //   if (1 <= rank <= this.board.boardSize && 1 <= file <= this.board.boardSize) {
-  //     const targetPiece = this.board.getPiece(rank, file);
-  //     if (targetPiece !== null && targetPiece.colour !== this.colour) {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }
+  isValidCapture(row, column) {
+    const rowChange = row - this.row;
+    const columnChange = column - this.column;
+    return Math.abs(columnChange) === 1 && rowChange === this.direction;
+  }
 
 //   getValidCaptures() {
-//     const rank = this.rank;
-//     const file = this.file;
+//     const Row = this.Row;
+//     const Column = this.Column;
 //     const direction = this.direction;
 //     const captureMoves = [];
 //     const captureOffsets = [[direction, -1], [direction, 1]];
-//     for (const [offsetRank, offsetFile] of captureOffsets) {
-//       const targetRank = rank + offsetRank;
-//       const targetFile = file + offsetFile;
-//       if (this.isValidCapture(targetRank, targetFile)) {
-//         captureMoves.push([targetRank, targetFile]);
+//     for (const [offsetRow, offsetColumn] of captureOffsets) {
+//       const targetRow = Row + offsetRow;
+//       const targetColumn = Column + offsetColumn;
+//       if (this.isValidCapture(targetRow, targetColumn)) {
+//         captureMoves.push([targetRow, targetColumn]);
 //       }
 //     }
 //     return captureMoves;
@@ -88,35 +80,42 @@ class Pawn extends Piece {
 // ---------------- KNIGHT ---------------- //
 
 class Knight extends Piece {
-  constructor(colour, value = 3) {
-    super(colour, value);
+  constructor(colour, row, column) {
+    super(colour);
+    this.row = row;
+    this.column = column;
+    this.value = 3;
     this.display = document.createElement("span");
     this.display.innerText = this.colour === "white" ? "\u2658" : "\u265E";
   }
 
-  isValidMove(startRank, startFile, endRank, endFile) {
-    if (!super.isValidMove(startRank, startFile, endRank, endFile)) {
+  isValidMove(row, column) {
+    if (!super.isValidMove(row, column)) {
       return false;
     }
-    const rowChange = endRank - startRank;
-    const columnChange = endFile - startFile;
-    if ((abs(rowChange) === 2 && abs(columnChange) === 1) ||
-      (abs(columnChange) === 2 && abs(rowChange) === 1)) {
+    const rowChange = row - this.row;
+    const columnChange = column - this.column;
+    if ((Math.abs(rowChange) === 2 && Math.abs(columnChange) === 1) ||
+      (Math.abs(columnChange) === 2 && Math.abs(rowChange) === 1)) {
       return true;
     }
     return false;
   }
 
-  getValidMoves(rank, file) {
+  isValidCapture(row, column) {
+    this.isValidMove(row, column);
+  }
+
+  getValidMoves(row, column) {
     return [
-      [rank - 2, file + 1],
-      [rank - 1, file + 2],
-      [rank + 1, file + 2],
-      [rank + 2, file + 1],
-      [rank + 2, file - 1],
-      [rank + 1, file - 2],
-      [rank - 1, file - 2],
-      [rank - 2, file - 1],
+      [row - 2, column + 1],
+      [row - 1, column + 2],
+      [row + 1, column + 2],
+      [row + 2, column + 1],
+      [row + 2, column - 1],
+      [row + 1, column - 2],
+      [row - 1, column - 2],
+      [row - 2, column - 1],
     ];
   }
 }
@@ -124,17 +123,26 @@ class Knight extends Piece {
 // --------------- BISHOP ---------------- //
 
 class Bishop extends Piece {
-  constructor(colour, value = 3) {
-    super(colour, value);
+  constructor(colour, row, column) {
+    super(colour);
+    this.row = row;
+    this.column = column;
+    this.value = 3;
     this.display = document.createElement("span");
     this.display.innerText = this.colour === "white" ? "\u2657" : "\u265D";
   }
-  
-  isValidMove(startRank, startFile, endRank, endFile) {
-    if (!super.isValidMove(startRank, startFile, endRank, endFile)) {
+
+  isValidMove(startRow, startColumn, endRow, endColumn) {
+    if (!super.isValidMove(startRow, startColumn, endRow, endColumn)) {
       return false;
     }
-    return abs(endFile - startFile) === abs(endRank - startRank);
+    const rowChange = endRow - startRow;
+    const columnChange = endColumn - startColumn;
+    return Math.abs(columnChange) === Math.abs(rowChange);
+  }
+
+  isValidCapture(row, column) {
+    this.isValidMove(row, column);
   }
 
   // getValidMoves(row, column) {
@@ -143,19 +151,19 @@ class Bishop extends Piece {
   //   for (let i = 1; i < 8; i++) {
   //     // Up-right
   //     if (row - i >= 0 && column + i < 8) {
-  //       moves.push([rank - i, column + i]);
+  //       moves.push([Row - i, column + i]);
   //     }
   //     // Up-left
   //     if (row - i >= 0 && column - i >= 0) {
-  //       moves.push([rank - i, column - i]);
+  //       moves.push([Row - i, column - i]);
   //     }
   //     // Down-right
   //     if (row + i < 8 && column + i < 8) {
-  //       moves.push([rank + i, column + i]);
+  //       moves.push([Row + i, column + i]);
   //     }
   //     // Down-left
   //     if (row + i < 8 && column - i >= 0) {
-  //       moves.push([rank + i, column - i]);
+  //       moves.push([Row + i, column - i]);
   //     }
   //   }
   //   return moves;
@@ -165,35 +173,43 @@ class Bishop extends Piece {
 // ------------------ ROOK -------------------- //
 
 class Rook extends Piece {
-  constructor(colour, value = 5) {
-    super(colour, value);
+  constructor(colour, row, column) {
+    super(colour);
+    this.row = row;
+    this.column = column;
     this.value = 5;
     this.display = document.createElement("span");
     this.display.innerText = this.colour === "white" ? "\u2656" : "\u265C";
   }
 
-  isValidMove(startRank, startFile, endRank, endFile) {
-    if (!super.isValidMove(startRank, startFile, endRank, endFile)) {
+  isValidMove(startRow, startColumn, endRow, endColumn) {
+    if (!super.isValidMove(startRow, startColumn, endRow, endColumn)) {
       return false;
     }
-    return (startRank === endRank || startFile === endFile);
+    const rowChange = endRow - startRow;
+    const columnChange = endColumn - startColumn;
+    return (rowChange === 0 || columnChange === 0);
   }
 
-  // getValidMoves(rank, file) {
+  isValidCapture(row, column) {
+    this.isValidMove(row, column);
+  }
+
+  // getValidMoves(Row, Column) {
   //   const moves = [];
   //   // Horizontal movement
-  //   for (let f = file + 1; f < 8; f++) {
-  //     moves.push([rank, f]);
+  //   for (let f = Column + 1; f < 8; f++) {
+  //     moves.push([Row, f]);
   //   }
-  //   for (let f = file - 1; f >= 0; f--) {
-  //     moves.push([rank, f]);
+  //   for (let f = Column - 1; f >= 0; f--) {
+  //     moves.push([Row, f]);
   //   }
   //   // Vertical movement
-  //   for (let r = rank + 1; r < 8; r++) {
-  //     moves.push([r, file]);
+  //   for (let r = Row + 1; r < 8; r++) {
+  //     moves.push([r, Column]);
   //   }
-  //   for (let r = rank - 1; r >= 0; r--) {
-  //     moves.push([r, file]);
+  //   for (let r = Row - 1; r >= 0; r--) {
+  //     moves.push([r, Column]);
   //   }
   //   return moves;
   // }
@@ -202,83 +218,135 @@ class Rook extends Piece {
 // ---------------- QUEEN ------------------- //
 
 class Queen extends Piece {
-  constructor(colour, value = 9) {
+  constructor(colour, row, column) {
     super(colour);
-    this.value = value;
+    this.row = row;
+    this.column = column;
+    this.value = 9;
     this.display = document.createElement("span");
     this.display.innerText = this.colour === "white" ? "\u2655" : "\u265B";
   }
 
-  isValidMove(startRank, startFile, endRank, endFile) {
-    if (!super.isValidMove(startRank, startFile, endRank, endFile)) {
+  isValidMove(row, column) {
+    if (!super.isValidMove(row, column)) {
       return false;
     }
-    return (startFile === endFile) ||
-    (startRank === endRank) ||
-    abs(endFile - startFile) === abs(endRank - startRank);
+    const rowChange = row - this.row;
+    const columnChange = column - this.column;
+    return (columnChange === 0) ||
+    (rowChange === 0) ||
+    Math.abs(columnChange) === Math.abs(rowChange);
   }
 
-  // getValidMoves(rank, file) {
+  isValidCapture(row, column) {
+    this.isValidMove(row, column);
+  }
+
+  getMoves(boardSize) {
+    const moves = [];
+    // Add all possible moves in the horizontal direction
+    for (let i = this.column + 1; i < boardSize; i++) {
+      moves.push([this.row, i]);
+    }
+    for (let i = this.column - 1; i >= 0; i--) {
+      moves.push([this.row, i]);
+    }
+    // Add all possible moves in the vertical direction
+    for (let i = this.row + 1; i < boardSize; i++) {
+      moves.push([i, this.column]);
+    }
+    for (let i = this.row - 1; i >= 0; i--) {
+      moves.push([i, this.column]);
+    }
+    // Add all possible moves in the diagonal directions
+    for (let i = this.row + 1, j = this.column + 1; i < boardSize && j < boardSize; i++, j++) {
+      moves.push([i, j]);
+    }
+    for (let i = this.row - 1, j = this.column - 1; i >= 0 && j >= 0; i--, j--) {
+      moves.push([i, j]);
+    }
+    for (let i = this.row + 1, j = this.column - 1; i < boardSize && j >= 0; i++, j--) {
+      moves.push([i, j]);
+    }
+    for (let i = this.row - 1, j = this.column + 1; i >= 0 && j < boardSize; i--, j++) {
+      moves.push([i, j]);
+    }
+    return moves;
+  }
+}
+
+  // getValidMoves(Row, Column) {
   //   const moves = [];
   //   // Horizontal and vertical movement
-  //   for (let f = file + 1; f < 8; f++) {
-  //     moves.push([rank, f]);
+  //   for (let f = Column + 1; f < 8; f++) {
+  //     moves.push([Row, f]);
   //   }
-  //   for (let f = file - 1; f >= 0; f--) {
-  //     moves.push([rank, f]);
+  //   for (let f = Column - 1; f >= 0; f--) {
+  //     moves.push([Row, f]);
   //   }
-  //   for (let r = rank + 1; r < 8; r++) {
-  //     moves.push([r, file]);
+  //   for (let r = Row + 1; r < 8; r++) {
+  //     moves.push([r, Column]);
   //   }
-  //   for (let r = rank - 1; r >= 0; r--) {
-  //     moves.push([r, file]);
+  //   for (let r = Row - 1; r >= 0; r--) {
+  //     moves.push([r, Column]);
   //   }
   //   // Diagonal movement
   //   for (let i = 1; i < 8; i++) {
   //     // Up-right
-  //     if (rank - i >= 0 && file + i < 8) {
-  //       moves.push([rank - i, file + i]);
+  //     if (Row - i >= 0 && Column + i < 8) {
+  //       moves.push([Row - i, Column + i]);
   //     }
   //     // Up-left
-  //     if (rank - i >= 0 && file - i >= 0) {
-  //       moves.push([rank - i, file - i]);
+  //     if (Row - i >= 0 && Column - i >= 0) {
+  //       moves.push([Row - i, Column - i]);
   //     }
   //     // Down-right
-  //     if (rank + i < 8 && file + i < 8) {
-  //       moves.push([rank + i, file + i]);
+  //     if (Row + i < 8 && Column + i < 8) {
+  //       moves.push([Row + i, Column + i]);
   //     }
   //     // Down-left
-  //     if (rank + i < 8 && file - i >= 0) {
-  //       moves.push([rank + i, file - i]);
+  //     if (Row + i < 8 && Column - i >= 0) {
+  //       moves.push([Row + i, Column - i]);
   //     }
   //   }
   //   return moves;
   // }
-}
+// }
 
 // -------------------- KING -------------------- //
 
 class King extends Piece {
-  constructor(colour) {
+  constructor(colour, row, column) {
     super(colour);
+    this.row = row;
+    this.column = column;
     this.display = document.createElement("span");
     this.display.innerText = this.colour === "white" ? "\u2654" : "\u265A";
   }
 
-  isValidMove(startRank, startFile, endRank, endFile) {
-    return abs(endRank - startRank) <= 1 && abs(endFile - startFile) <= 1;
+  isValidMove(row, column) {
+    if (!super.isValidMove(row, column, row, column)) {
+      return false;
+    }
+    const rowChange = row - this.row;
+    const columnChange = column - this.column;
+    return Math.abs(rowChange) <= 1 && Math.abs(columnChange) <= 1;
   }
 
-  // getValidMoves(rank, file) {
+  isValidCapture(row, column) {
+    this.isValidMove(row, column);
+  }
+
+  // getMoves() {
   //   return [
-  //     [rank - 1, file], // Up
-  //     [rank - 1, file + 1], // Up-Right
-  //     [rank, file + 1], // Right
-  //     [rank + 1, file + 1], // Down-Right
-  //     [rank + 1, file], // Down
-  //     [rank + 1, file - 1], // Down-Left
-  //     [rank, file - 1], // Left
-  //     [rank - 1, file - 1], // Up-Left
+  //     [this.row - 1, this.column],
+  //     [this.row - 1, this.column + 1],
+  //     [this.row, this.column + 1],
+  //     [this.row + 1, this.column + 1],
+  //     [this.row + 1, this.column],
+  //     [this.row + 1, this.column - 1],
+  //     [this.row, this.column - 1],
+  //     [this.row - 1, column - 1],
   //   ];
   // }
 }
