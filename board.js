@@ -28,6 +28,51 @@ class Board {
       }
     }
   }
+
+  addEventListeners() {
+    for (let row = 0; row < this.board.size; row++) {
+      for (let column = 0; column < this.board.size; column++) {
+        const square = this.board.getSquare(row, column);
+        square.addEventListener("click", function(event) {
+          if (!startRow || !startColumn) {
+            startRow = row;
+            startColumn = column;
+            console.log("source assigned");
+          }
+          else if (!endRow || !endColumn) {
+            endRow = row;
+            endColumn = column;
+            console.log("target assigned");
+          }
+          else {
+            console.log("source and target already assigned");
+          }
+          // if no source square selected, select as source square
+          // if no target square selected, select as target square
+          // this.classList.toggle("selected");
+        })
+      }
+    }
+  }
+
+  addEventListener1() {
+    this.display.addEventListener("click", function(event) {
+      const index = event.target.closest(".square").getAttribute("index");
+      console.log(index);
+      if (!sourceIndex) {
+        sourceIndex = index;
+        console.log("source assigned");
+      }
+      else if (!targetIndex) {
+        targetIndex = index;
+        console.log("target assigned");
+      }
+      else {
+        console.log("source and target already assigned");
+      }
+    })
+  }
+
   // let targetSquare = null;
   // this.board.addEventListener("click", function(event) {
   //   console.log(event.target);
@@ -60,6 +105,8 @@ class Board {
   }
 
   setPiece(row, column, piece) {
+    piece.row = row;
+    piece.column = column;
     this.position.at(row)[column] = piece;
     const square = this.getSquare(row, column);
     square.innerHTML = (piece instanceof Piece) ? piece.display.outerHTML : "";
@@ -100,6 +147,7 @@ class Board {
       // Kings
       this.setPiece(0, this.size - 4, new King("black", 0, this.size - 4));
       this.setPiece(this.size - 1, this.size - 4, new King("white", this.size - 1, this.size - 4));
+      console.log("Set up finished");
   }
 
   isWithinBounds(row, column) {
