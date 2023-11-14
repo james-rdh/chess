@@ -8,6 +8,8 @@ class Board {
     this.size = size;
     this.position = Array.from({ length: this.size }, () => new Array(this.size).fill(null));
     this.newDisplay();
+    this.sourceIndex = null;
+    this.targetIndex = null;
   }
 
   newDisplay() {
@@ -27,50 +29,6 @@ class Board {
         this.display.appendChild(square);
       }
     }
-  }
-
-  addEventListeners() {
-    for (let row = 0; row < this.board.size; row++) {
-      for (let column = 0; column < this.board.size; column++) {
-        const square = this.board.getSquare(row, column);
-        square.addEventListener("click", function(event) {
-          if (!startRow || !startColumn) {
-            startRow = row;
-            startColumn = column;
-            console.log("source assigned");
-          }
-          else if (!endRow || !endColumn) {
-            endRow = row;
-            endColumn = column;
-            console.log("target assigned");
-          }
-          else {
-            console.log("source and target already assigned");
-          }
-          // if no source square selected, select as source square
-          // if no target square selected, select as target square
-          // this.classList.toggle("selected");
-        })
-      }
-    }
-  }
-
-  addEventListener1() {
-    this.display.addEventListener("click", function(event) {
-      const index = event.target.closest(".square").getAttribute("index");
-      console.log(index);
-      if (!sourceIndex) {
-        sourceIndex = index;
-        console.log("source assigned");
-      }
-      else if (!targetIndex) {
-        targetIndex = index;
-        console.log("target assigned");
-      }
-      else {
-        console.log("source and target already assigned");
-      }
-    })
   }
 
   // let targetSquare = null;

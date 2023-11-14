@@ -29,10 +29,29 @@ class Game {
     // append more things - e.g. clock, chat, etc.
   }
 
+  listenToBoard() {
+    this.board.display.addEventListener("click", function(event) {
+      const index = event.target.closest(".square").getAttribute("index");
+      // if online multiplayer, check if player is currentPlayer
+      console.log(index);
+      if (!this.sourceIndex) {
+        this.sourceIndex = index;
+        console.log("source assigned");
+      }
+      else if (!targetIndex) {
+        this.targetIndex = index;
+        console.log("target assigned");
+      }
+      else {
+        console.log("source and target already assigned");
+      }
+    })
+  }
+
   start() {
     console.log("Chess game started!");
     this.currentPlayer = "white";
-    this.board.addEventListener1();
+    this.listenToBoard();
     // this.clock.start();
   }
 
