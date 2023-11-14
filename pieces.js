@@ -8,11 +8,6 @@ class Piece {
   isValidMove(row, column) {
     return row !== this.row || column !== this.column;
   }
-
-  movePiece(row, column) {
-    this.row = row;
-    this.column = column;
-  }
 }
 
 // -------------- PAWN --------------- //
@@ -29,8 +24,26 @@ class Pawn extends Piece {
     this.display.innerText = this.colour === "white" ? "\u2659" : "\u265F";
   }
 
-  getMoveDirection() {
-    return [[this.direction, 0]];
+  isValidMove(row, column) {
+    if (!super.isValidMove(row, column)) {
+      return false;
+    }
+    const moves = this.getMoves()
+    const rowChange = row - this.row;
+    const columnChange = column - this.column;
+    if (columnChange === 0) {
+      if (rowChange === this.direction) {
+        return true;
+      }
+      if (rowChange === 2 * this.direction && this.enpassant === null) {
+        return true;
+      }
+    }
+    // isCaptureMove, check for capture moves
+    // const captureMoves = this.getCaptureMoves();
+    // moves.push(...captureMoves);
+    // moves = moves.filter(([r, f]) => 0 <= r < boardSize && 0 <= f < boardSize);
+    return false;
   }
 
   isValidMove(row, column) {
@@ -54,10 +67,20 @@ class Pawn extends Piece {
     return false;
   }
 
-  isValidCapture(row, column) {
-    const rowChange = row - this.row;
-    const columnChange = column - this.column;
-    return Math.abs(columnChange) === 1 && rowChange === this.direction;
+  getMoves() {
+    const moves = [];
+    moves.push([this.row + this.direction, this.column])
+    if (this.enpassant === null) {
+      moves.push([this.row + 2 ** this.direction, this.column])
+    }
+    return moves;
+  }
+
+  getCaptures() {
+    const captures = [];
+    captures.push([this.row + this.direction, this.column + 1])
+    captures.push([this.row + this.direction, this.column - 1])
+    return captures;
   }
 
 //   getValidCaptures() {
@@ -106,17 +129,21 @@ class Knight extends Piece {
     this.isValidMove(row, column);
   }
 
-  getValidMoves(row, column) {
+  getMoves() {
     return [
-      [row - 2, column + 1],
-      [row - 1, column + 2],
-      [row + 1, column + 2],
-      [row + 2, column + 1],
-      [row + 2, column - 1],
-      [row + 1, column - 2],
-      [row - 1, column - 2],
-      [row - 2, column - 1],
+      [this.row - 2, this.column + 1],
+      [this.row - 1, this.column + 2],
+      [this.row + 1, this.column + 2],
+      [this.row + 2, this.column + 1],
+      [this.row + 2, this.column - 1],
+      [this.row + 1, this.column - 2],
+      [this.row - 1, this.column - 2],
+      [this.row - 2, this.column - 1]
     ];
+  }
+
+  getCaptures() {
+    return this.getMoves();
   }
 }
 
@@ -132,12 +159,12 @@ class Bishop extends Piece {
     this.display.innerText = this.colour === "white" ? "\u2657" : "\u265D";
   }
 
-  isValidMove(startRow, startColumn, endRow, endColumn) {
-    if (!super.isValidMove(startRow, startColumn, endRow, endColumn)) {
+  isValidMove(row, column) {
+    if (!super.isValidMove(row, column)) {
       return false;
     }
-    const rowChange = endRow - startRow;
-    const columnChange = endColumn - startColumn;
+    const rowChange = row - this.row;
+    const columnChange = column - this.column;
     return Math.abs(columnChange) === Math.abs(rowChange);
   }
 
@@ -182,12 +209,12 @@ class Rook extends Piece {
     this.display.innerText = this.colour === "white" ? "\u2656" : "\u265C";
   }
 
-  isValidMove(startRow, startColumn, endRow, endColumn) {
-    if (!super.isValidMove(startRow, startColumn, endRow, endColumn)) {
+  isValidMove(row, column) {
+    if (!super.isValidMove(row, column)) {
       return false;
     }
-    const rowChange = endRow - startRow;
-    const columnChange = endColumn - startColumn;
+    const rowChange = row - this.row;
+    const columnChange = column - this.column;
     return (rowChange === 0 || columnChange === 0);
   }
 

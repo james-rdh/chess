@@ -8,8 +8,6 @@ class Board {
     this.size = size;
     this.position = Array.from({ length: this.size }, () => new Array(this.size).fill(null));
     this.newDisplay();
-    this.sourceIndex = null;
-    this.targetIndex = null;
   }
 
   newDisplay() {
@@ -63,8 +61,10 @@ class Board {
   }
 
   setPiece(row, column, piece) {
-    piece.row = row;
-    piece.column = column;
+    if (piece instanceof Piece) {
+      piece.row = row;
+      piece.column = column;
+    }
     this.position.at(row)[column] = piece;
     const square = this.getSquare(row, column);
     square.innerHTML = (piece instanceof Piece) ? piece.display.outerHTML : "";
@@ -81,31 +81,30 @@ class Board {
   setInitialPosition() {
       // Pawns
       for (let column = 0; column < this.size; column++) {
-        this.setPiece(this.size - 2, column, new Pawn("white", this.size - 2, column));
-        this.setPiece(1, column, new Pawn("black", 1, column));
+        this.setPiece(this.size - 2, column, new Pawn("white"));
+        this.setPiece(1, column, new Pawn("black"));
       }
       // Knights
-      this.setPiece(0, 1, new Knight("black", 0, 1));
-      this.setPiece(0, this.size - 2, new Knight("black", 0, this.size - 2));
-      this.setPiece(this.size - 1, 1, new Knight("white", this.size - 1, 1));
-      this.setPiece(this.size - 1, this.size - 2, new Knight("white", this.size - 1, this.size - 2));
+      this.setPiece(0, 1, new Knight("black"));
+      this.setPiece(0, this.size - 2, new Knight("black"));
+      this.setPiece(this.size - 1, 1, new Knight("white"));
+      this.setPiece(this.size - 1, this.size - 2, new Knight("white"));
       // Bishops
-      this.setPiece(0, 2, new Bishop("black", 0, 2));
-      this.setPiece(0, this.size - 3, new Bishop("black", 0, this.size - 3));
-      this.setPiece(this.size - 1, 2, new Bishop("white", this.size - 1, 2));
-      this.setPiece(this.size - 1, this.size - 3, new Bishop("white", this.size - 1, this.size - 3));
+      this.setPiece(0, 2, new Bishop("black"));
+      this.setPiece(0, this.size - 3, new Bishop("black"));
+      this.setPiece(this.size - 1, 2, new Bishop("white"));
+      this.setPiece(this.size - 1, this.size - 3, new Bishop("white"));
       // Rooks
-      this.setPiece(0, 0, new Rook("black", 0, 0));
-      this.setPiece(0, this.size - 1, new Rook("black", 0, this.size - 1));
-      this.setPiece(this.size - 1, 0, new Rook("white", this.size - 1, 0));
-      this.setPiece(this.size - 1, this.size - 1, new Rook("white", this.size - 1, this.size - 1));
+      this.setPiece(0, 0, new Rook("black"));
+      this.setPiece(0, this.size - 1, new Rook("black"));
+      this.setPiece(this.size - 1, 0, new Rook("white"));
+      this.setPiece(this.size - 1, this.size - 1, new Rook("white"));
       // Queens
-      this.setPiece(0, 3, new Queen("black", 0, 3));
-      this.setPiece(this.size - 1, 3, new Queen("white", this.size - 1, 3));
+      this.setPiece(0, 3, new Queen("black"));
+      this.setPiece(this.size - 1, 3, new Queen("white"));
       // Kings
-      this.setPiece(0, this.size - 4, new King("black", 0, this.size - 4));
-      this.setPiece(this.size - 1, this.size - 4, new King("white", this.size - 1, this.size - 4));
-      console.log("Set up finished");
+      this.setPiece(0, this.size - 4, new King("black"));
+      this.setPiece(this.size - 1, this.size - 4, new King("white"));
   }
 
   isWithinBounds(row, column) {
@@ -114,23 +113,20 @@ class Board {
   }
 
   isValidMove(startRow, startColumn, endRow, endColumn) {
-    if (!this.isWithinBounds(startRow, startColumn) || !this.isWithinBounds(endRow, endColumn)) {
-      console.log("Move is out of bounds");
+    if (!(this.isWithinBounds(startRow, startColumn) && this.isWithinBounds(endRow, endColumn))) {
       return false;
     }
     const sourcePiece = this.getPiece(startRow, startColumn);
     const targetPiece = this.getPiece(endRow, endColumn);
     if (!(sourcePiece instanceof Piece)) {
-      console.log("No piece at source square");
       return false;
     }
     if (!sourcePiece.isValidMove(endRow, endColumn)) {
-      console.log("Invalid piece move");
       return false;
     }
-    if (targetPiece instanceof Piece && targetPiece.colour != sourcePiece.colour) {
-      this.isValidCapture();
-    }
+    // if (!sourcePiece.isValidCapture(endRow, endColumn)) {
+    //   return false;
+    // }
     return true;
   }
 

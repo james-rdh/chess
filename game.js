@@ -8,18 +8,25 @@ Pieces interact with the game
 
 class Game {
   constructor(whitePlayer, blackPlayer) {
+    whitePlayer.colour = "white";
+    blackPlayer.colour = "black";
     this.players =  {"white": whitePlayer, "black": blackPlayer};
     this.currentPlayer = null;
-    this.board = new Board()
+    this.board = new Board();
     this.board.setInitialPosition();
+    this.startRow = null;
+    this.startColumn = null;
+    this.endRow = null;
+    this.endColumn = null;
     this.pieceList = [];
     this.moveCounter = 0;
     this.halfMoveCounter = 0;
     this.fiftyMoveCounter = 0;
-    this.timeControl = null;
+    // this.timeControl = null;
     // this.clock = new Clock();
     this.result = null;
     this.newDisplay();
+    console.log("Chess game initialised");
   }
 
   newDisplay() {
@@ -29,21 +36,62 @@ class Game {
     // append more things - e.g. clock, chat, etc.
   }
 
-  listenToBoard() {
-    this.board.display.addEventListener("click", function(event) {
-      const index = event.target.closest(".square").getAttribute("index");
-      // if online multiplayer, check if player is currentPlayer
-      console.log(index);
-      if (!this.sourceIndex) {
-        this.sourceIndex = index;
-        console.log("source assigned");
+  listenForInput() {
+    this.board.display.addEventListener("click", (event) => {
+      if (event.target === this.board.display) {
+        return null;
       }
-      else if (!targetIndex) {
-        this.targetIndex = index;
-        console.log("target assigned");
+      // if (isCurrentPlayer()) {
+      const index = event.target.closest(".square").getAttribute("index");
+      const row = Math.floor(index / this.board.size);
+      const column = index % this.board.size;
+      if (this.startRow === null || this.startColumn === null) {
+        const piece = this.board.getPiece(row, column);
+        if (piece instanceof Piece && piece.colour === this.currentPlayer) {
+          this.startRow = row;
+          this.startColumn = column;
+          console.log("start position assigned: ", this.startRow, this.startColumn);
+        }
+      }
+      else if (this.endRow === null || this.endColumn === null) {
+        this.endRow = row;
+        this.endColumn = column;
+        console.log("end position assigned: ", this.endRow, this.endColumn);
+        if (this.isValidMove(this.startRow, this.startColumn, this.endRow, this.endColumn)) {  
+          this.board.movePiece(this.startRow, this.startColumn, this.endRow, this.endColumn);
+          this.startRow = null;
+          this.startColumn = null;
+          this.endRow = null;
+          this.endColumn = null;
+          console.log("start and end position unassigned");
+          this.moveCounter++;
+          const sourcePiece = this.board.getPiece(this.startRow, this.startColumn);
+          const targetPiece = this.board.getPiece(this.endRow, this.endColumn);
+          if (sourcePiece instanceof Pawn || targetPiece instanceof Piece) {
+            this.fiftyMoveCounter = 0;
+          } else {
+            this.fiftyMoveCounter++;
+          }
+          this.halfMoveCounter++;
+          console.log("  Move ", this.moveCounter, " complete");
+          this.switchTurn();
+          if (this.isGameOver()) {
+            this.end();
+          }
+        }
+        else {
+          this.startRow = null;
+          this.startColumn = null;
+          this.endRow = null;
+          this.endColumn = null;
+          console.log("start and end position unassigned");
+        }
       }
       else {
-        console.log("source and target already assigned");
+        this.startRow = null;
+        this.startColumn = null;
+        this.endRow = null;
+        this.endColumn = null;
       }
     })
   }
@@ -51,80 +99,18 @@ class Game {
   start() {
     console.log("Chess game started!");
     this.currentPlayer = "white";
-    this.listenToBoard();
     // this.clock.start();
+    this.listenForInput();
   }
 
-  // start() {
-  //   console.log("Chess game started!");
-  //   // this.clock.start();
-  //   let sourceIndex, targetIndex;
-  //   this.board.addEventListener1();
-  //   let startRow, startColumn, endRow, endColumn;
-  //   do {
-  //     this.currentPlayer = this.currentPlayer !== "white" ? "white" : "black";
-  //     console.log(`It's ${this.players[this.currentPlayer].name}'s turn (${this.currentPlayer})`);
-  //     // player selects sourceSquare
-  //     // player selects targetSquare
-  //     // do {
-  //     //   [startRow, startColumn] = squareToCoordinates(prompt("Enter source square (e.g., e4): "));
-  //     //   [endRow, endColumn] = squareToCoordinates(prompt("Enter target square (e.g., d5): "));
-  //     // }
-  //     // while (!this.isValidMove(startRow, startColumn, endRow, endColumn));
-  //     this.board.movePiece(startRow, startColumn, endRow, endColumn);
-  //     // this.moveCounter++;
-  //     // this.fiftyMoveCounter++;
-  //     this.halfMoveCounter++;
-  //   }
-
-  //   // const promise = new Promise((resolve, reject) => {
-  //   //   const [startRow, startColumn] = squareToCoordinates(prompt("Enter source square (e.g., e4): "));
-  //   //   const [endRow, endColumn] = squareToCoordinates(prompt("Enter target square (e.g., d5): "));
-  //   //   if (this.isValidMove(startRow, startColumn, endRow, endColumn)) {
-  //   //     resolve();
-  //   //   } else {
-  //   //     reject("Invalid move");
-  //   //   }
-  //   // });
-  //   // promise.then(
-  //   //   function() {
-  //   //     this.board.movePiece(startRow, startColumn, endRow, endColumn);
-  //   //   }
-  //   // );
-
-  //   while (!this.isGameOver());
-  //   // // clicks square to getValidMoves
-  //   // // clicks another square to makeMove
-  //   // this.players[this.currentPlayer].move(startRow, startColumn, endRow, endColumn);
-  //   // add event for completed turn
-  //   // console.log(this.board.position)
-  //   this.end();
-  // }
+  switchTurn() {
+    this.currentPlayer = this.currentPlayer === "white" ? "black" : "white";
+    console.log(`It's ${this.players[this.currentPlayer].name}'s turn (${this.currentPlayer})`);
+    }
 
   end() {
     console.log("Chess game ended.");
   }
-
-  // select source square
-
-  // get moves
-
-  // get captures
-
-  // select target square
-
-  // if target square is not selected, deselect source square
-
-  // movePiece(startRow, startColumn, endRow, endColumn) {
-  //   const sourcePiece = this.board.getPiece(startRow, startColumn);
-  //   const targetSquare = this.board.getPiece(endRow, endColumn);
-  //   this.board.movePiece(startRow, startColumn, endRow, endColumn);
-  //   if (sourcePiece instanceof Pawn || targetSquare instanceof Piece) {
-  //     this.fiftyMoveCounter = 0;
-  //   } else {
-  //     this.fiftyMoveCounter++;
-  //   }
-  // }
 
   isValidMove(startRow, startColumn, endRow, endColumn) {
     if (!this.board.isValidMove(startRow, startColumn, endRow, endColumn)) {
@@ -140,16 +126,14 @@ class Game {
     return true;
   }
 
-  getMoves(piece) {
-    const row = piece.row;
-    const column = piece.column;
-    const direction = this.direction;
+  getValidMoves(row, column) {
+    const piece = this.board.getPiece(row, column);
     const moves = [];
-    moves.push([row + direction, column]);
+    moves.push([row + piece.direction, column]);
     if (this.enpassant = null) {
       moves.push([row + 2 * direction, column]);
     }
-    const captureMoves = this.getCaptureMoves();
+    const captureMoves = piece.getCaptures(row, column);
     moves.push(...captureMoves);
     // moves = moves.filter(([row, column]) => 0 <= r < boardSize && 0 <= f < boardSize);
     return moves;
@@ -157,7 +141,7 @@ class Game {
 
   isGameOver() {
     if (this.isInCheckmate(this.currentPlayer)) {
-      console.log(`Checkmate! ${this.players[this.currentPlayer].getName()} (${this.currentPlayer}) wins!`);
+      console.log(`Checkmate! ${this.players[this.currentPlayer].name} (${this.currentPlayer}) wins!`);
       return true;
     }
     if (this.isStalemate()) {
@@ -189,15 +173,18 @@ class Game {
 
 
   isInCheck(colour) {
-    const [kingRow, kingColumn] = this.board.findKing(colour);
-    if ([kingRow, kingColumn] == null) {
+    const kingPosition = this.board.findKing(colour);
+    if (kingPosition === null) {
+      console.log("no king on the board");
       return false;
     }
     for (let row = 0; row < this.board.size; row++) {
       for (let column = 0; column < this.board.size; column++) {
         const piece = this.board.getPiece(row, column);
-        if (piece instanceof Piece && piece.colour !== colour) {
-          return this.isValidMove(row, column, kingRow, kingColumn);
+        if (piece instanceof Piece && piece.colour !== colour
+          && this.isValidMove(row, column, ...kingPosition)) {
+          console.log(colour, " is in check");
+          return true;
         }
       }
     }
@@ -216,33 +203,34 @@ class Game {
     if (!this.isInCheck(colour)) {
       return false;
     }
-    // // Check if the king can escape check
-    // const [kingRow, kingColumn] = this.board.findKing(colour);
-    // const king = this.board.getPiece(kingRow, kingColumn);
-    // const validMoves = king.getValidMoves();
-    // for (const move of validMoves) {
-    //   if (!this.isSquareUnderAttack(move, colour)) {
-    //     return false;
-    //   }
-    // }    // Check if any piece can block the check
-    // for (const piece of this.board.getSquares(colour)) {
-    //   if (piece.canBlockCheck()) {
-    //     return false;
-    //   }
-    // }
-    // for (let Row = 0; Row < 8; Row++) {
-    //   for (let Column = 0; Column < 8; Column++) {
-    //     const piece = getPiece(Row, Column);
-    //     if (piece instanceof Piece && piece.colour === colour) {
-    //       const validMoves = piece.getValidMoves(Row, Column);
-    //       for (const move of validMoves) {
-    //         // if none of these moves take the king out of check, return false
-    //         if (!this.isInCheck(colour)) {
-    //           return false;
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
+    // Check if the king can escape check
+    const kingPosition = this.board.findKing(colour);
+    const king = this.board.getPiece(...kingPosition);
+    const kingMoves = this.getValidMoves(king);
+    for (const move of validMoves) {
+      if (!this.isSquareUnderAttack(...move, colour)) {
+        return false;
+      }
+    }
+    // Check if any piece can block the check
+    for (const piece of this.board.getSquares(colour)) {
+      if (piece.canBlockCheck()) {
+        return false;
+      }
+    }
+    for (let Row = 0; Row < 8; Row++) {
+      for (let Column = 0; Column < 8; Column++) {
+        const piece = getPiece(Row, Column);
+        if (piece instanceof Piece && piece.colour === colour) {
+          const validMoves = piece.getValidMoves(Row, Column);
+          for (const move of validMoves) {
+            // if none of these moves take the king out of check, return false
+            if (!this.isInCheck(colour)) {
+              return false;
+            }
+          }
+        }
+      }
+    }
   }
 }
