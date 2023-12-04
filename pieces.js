@@ -1,379 +1,359 @@
+// ------------- PIECES --------------- //
 class Piece {
   constructor(colour) {
     this.colour = colour;
-    this.row = null;
-    this.column = null;
+    this.position = null;
+    this.value = null;
+    this.moveNum = 0;
   }
 
-  isValidMove(row, column) {
-    return row !== this.row || column !== this.column;
+  isValidMove(position) {
+    if (this.position) {
+      return this.position[0] !== position &&
+        this.position[1] !== position[1];
+    }
+  }
+
+  isValidCapture(position) {
+    return this.position !== position;
+  }
+
+  movePosition(position) {
+    this.position = position;
+    this.moveNum++;
+  }
+
+  setPosition(position) {
+    this.position = position;
   }
 }
 
 // -------------- PAWN --------------- //
-
 class Pawn extends Piece {
-  constructor(colour, row, column) {
+  constructor(colour) {
     super(colour);
-    this.row = row;
-    this.column = column;
     this.value = 1;
-    this.direction = this.colour === "white" ? -1 : 1;
-    this.enpassant = null;
-    this.display = document.createElement("span");
-    this.display.innerText = this.colour === "white" ? "\u2659" : "\u265F";
+    this.direction = this.colour === 'white' ? -1 : 1;
+    this.moveDirections = [
+      [this.direction, 0]
+    ]
+    this.captureDirections = [
+      [this.direction, -1],
+      [this.direction,  1]
+    ]
+    // display
+    this.display = document.createElement('span');
+    this.display.innerText = this.colour === 'white' ? '\u2659' : '\u265F';
   }
 
-  isValidMove(row, column) {
-    if (!super.isValidMove(row, column)) {
+  isValidMove(position) {
+    if (!super.isValidMove(position)) {
       return false;
     }
-    const moves = this.getMoves()
-    const rowChange = row - this.row;
-    const columnChange = column - this.column;
-    if (columnChange === 0) {
-      if (rowChange === this.direction) {
-        return true;
-      }
-      if (rowChange === 2 * this.direction && this.enpassant === null) {
-        return true;
-      }
-    }
-    // isCaptureMove, check for capture moves
-    // const captureMoves = this.getCaptureMoves();
-    // moves.push(...captureMoves);
-    // moves = moves.filter(([r, f]) => 0 <= r < boardSize && 0 <= f < boardSize);
-    return false;
-  }
-
-  isValidMove(row, column) {
-    if (!super.isValidMove(row, column)) {
+    const rowChange = position[0] - this.position[0];
+    const columnChange = position[1] - this.position[1];
+    if (columnChange !== 0) {
       return false;
     }
-    const rowChange = row - this.row;
-    const columnChange = column - this.column;
-    if (columnChange === 0) {
-      if (rowChange === this.direction) {
-        return true;
-      }
-      if (rowChange === 2 * this.direction && this.enpassant === null) {
-        return true;
-      }
+    else if (rowChange === this.direction) {
+      return true;
     }
-    // isCaptureMove, check for capture moves
-    // const captureMoves = this.getCaptureMoves();
-    // moves.push(...captureMoves);
-    // moves = moves.filter(([r, f]) => 0 <= r < boardSize && 0 <= f < boardSize);
-    return false;
-  }
-
-  getMoves() {
-    const moves = [];
-    moves.push([this.row + this.direction, this.column])
-    if (this.enpassant === null) {
-      moves.push([this.row + 2 ** this.direction, this.column])
+    else if (rowChange === 2 * this.direction && this.moveNum === 0) {
+      return true;
     }
-    return moves;
-  }
-
-  getCaptures() {
-    const captures = [];
-    captures.push([this.row + this.direction, this.column + 1])
-    captures.push([this.row + this.direction, this.column - 1])
-    return captures;
-  }
-
-//   getValidCaptures() {
-//     const Row = this.Row;
-//     const Column = this.Column;
-//     const direction = this.direction;
-//     const captureMoves = [];
-//     const captureOffsets = [[direction, -1], [direction, 1]];
-//     for (const [offsetRow, offsetColumn] of captureOffsets) {
-//       const targetRow = Row + offsetRow;
-//       const targetColumn = Column + offsetColumn;
-//       if (this.isValidCapture(targetRow, targetColumn)) {
-//         captureMoves.push([targetRow, targetColumn]);
-//       }
-//     }
-//     return captureMoves;
-//   }
-}
-
-// ---------------- KNIGHT ---------------- //
-
-class Knight extends Piece {
-  constructor(colour, row, column) {
-    super(colour);
-    this.row = row;
-    this.column = column;
-    this.value = 3;
-    this.display = document.createElement("span");
-    this.display.innerText = this.colour === "white" ? "\u2658" : "\u265E";
-  }
-
-  isValidMove(row, column) {
-    if (!super.isValidMove(row, column)) {
+    else {
       return false;
     }
-    const rowChange = row - this.row;
-    const columnChange = column - this.column;
-    if ((Math.abs(rowChange) === 2 && Math.abs(columnChange) === 1) ||
-      (Math.abs(columnChange) === 2 && Math.abs(rowChange) === 1)) {
+  }
+
+  isValidCapture(position) {
+    const rowChange = position[0] - this.position[0];
+    const columnChange = position[1] - this.position[1];
+    if (rowChange === this.direction && Math.abs(columnChange) === 1) {
       return true;
     }
     return false;
   }
 
-  isValidCapture(row, column) {
-    this.isValidMove(row, column);
+  getMoveList(limit = 2) {
+    const moveList = [];
+    this.moveDirections.foreach(move => {
+      for (i = 1; i < limit; i++) {
+        moveList.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
+      }
+    })
+    if (this.moveNum === 0) {
+      moveList.push([this.position[0] + 2 * move[0], this.position[1] + 2 * move[1]])
+    }
+    return moveList;
   }
 
-  getMoves() {
-    return [
-      [this.row - 2, this.column + 1],
-      [this.row - 1, this.column + 2],
-      [this.row + 1, this.column + 2],
-      [this.row + 2, this.column + 1],
-      [this.row + 2, this.column - 1],
-      [this.row + 1, this.column - 2],
-      [this.row - 1, this.column - 2],
-      [this.row - 2, this.column - 1]
-    ];
+  getCaptureList() {
+    const captureList = [];
+    this.captureDirections.foreach(capture => {
+      captureList.push([this.position[0] + capture[0], this.position[1] + capture[1]]);
+    })
+    return captureList;
+  }
+}
+
+// ---------------- KNIGHT ---------------- //
+class Knight extends Piece {
+  constructor(colour) {
+    super(colour);
+    this.value = 3;
+    this.moveDirections = [
+      [ 2,  1],
+      [ 2, -1],
+      [ 1,  2],
+      [ 1, -2],
+      [-2,  1],
+      [-2, -1],
+      [-1,  2],
+      [-1, -2]
+    ]
+    this.captureDirections = this.moveDirections;
+    // display
+    this.display = document.createElement('span');
+    this.display.innerText = this.colour === 'white' ? '\u2658' : '\u265E';
   }
 
-  getCaptures() {
-    return this.getMoves();
+  isValidMove(position) {
+    if (!super.isValidMove(position)) {
+      return false;
+    }
+    const rowChange = position[0] - this.position[0];
+    const columnChange = position[1] - this.position[1];
+    if (Math.abs(rowChange) === 2 && Math.abs(columnChange) === 1) {
+      return true;
+    }
+    return false;
+  }
+
+  isValidCapture(position) {
+    return this.isValidMove(position);
+  }
+
+  getMoveList() {
+    const moveList = [];
+    this.moveDirections.foreach(move => {
+      moveList.push([this.position[0] + move[0], this.position[1] + move[1]]);
+    })
+    return moveList;
+  }
+
+  getCaptureList() {
+    const captureList = [];
+    this.captureDirections.foreach(capture => {
+      captureList.push([this.position[0] + capture[0], this.position[1] + capture[1]]);
+    })
+    return captureList;
   }
 }
 
 // --------------- BISHOP ---------------- //
-
 class Bishop extends Piece {
-  constructor(colour, row, column) {
+  constructor(colour) {
     super(colour);
-    this.row = row;
-    this.column = column;
     this.value = 3;
-    this.display = document.createElement("span");
-    this.display.innerText = this.colour === "white" ? "\u2657" : "\u265D";
+    this.moveDirections = [
+      [ 1,  1],
+      [ 1, -1],
+      [-1,  1],
+      [-1, -1]
+    ];
+    this.captureDirections = this.moveDirections;
+    // display
+    this.display = document.createElement('span');
+    this.display.innerText = this.colour === 'white' ? '\u2657' : '\u265D';
   }
 
-  isValidMove(row, column) {
-    if (!super.isValidMove(row, column)) {
+  isValidMove(position) {
+    if (!super.isValidMove(position)) {
       return false;
     }
-    const rowChange = row - this.row;
-    const columnChange = column - this.column;
-    return Math.abs(columnChange) === Math.abs(rowChange);
+    const rowChange = position[0] - this.position[0];
+    const columnChange = position[1] - this.position[1];
+    return Math.abs(rowChange) === Math.abs(columnChange);
   }
 
-  isValidCapture(row, column) {
-    this.isValidMove(row, column);
+  isValidCapture(position) {
+    return this.isValidMove(position);
   }
 
-  // getValidMoves(row, column) {
-  //   const moves = [];
-  //   // Diagonal movement
-  //   for (let i = 1; i < 8; i++) {
-  //     // Up-right
-  //     if (row - i >= 0 && column + i < 8) {
-  //       moves.push([Row - i, column + i]);
-  //     }
-  //     // Up-left
-  //     if (row - i >= 0 && column - i >= 0) {
-  //       moves.push([Row - i, column - i]);
-  //     }
-  //     // Down-right
-  //     if (row + i < 8 && column + i < 8) {
-  //       moves.push([Row + i, column + i]);
-  //     }
-  //     // Down-left
-  //     if (row + i < 8 && column - i >= 0) {
-  //       moves.push([Row + i, column - i]);
-  //     }
-  //   }
-  //   return moves;
-  // }
+  getMoveList(limit = 8) {
+    const moveList = [];
+    this.moveDirections.foreach(move => {
+      for (i = 1; i < limit; i++) {
+        moveList.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
+      }
+    })
+  }
+
+  getCaptureList(limit = 8) {
+    const captureList = [];
+    this.captureDirections.foreach(capture => {
+      for (i = 1; i < limit; i++) {
+        captureList.push([this.position[0] + i * capture[0], this.position[1] + i * capture[1]]);
+      }
+    })
+  }
 }
 
 // ------------------ ROOK -------------------- //
-
 class Rook extends Piece {
-  constructor(colour, row, column) {
+  constructor(colour) {
     super(colour);
-    this.row = row;
-    this.column = column;
     this.value = 5;
-    this.display = document.createElement("span");
-    this.display.innerText = this.colour === "white" ? "\u2656" : "\u265C";
+    this.moveDirections = [
+      [ 1,  0],
+      [ 0,  1],
+      [-1,  0],
+      [ 0, -1]
+    ];
+    this.captureDirections = this.moveDirections;
+    // display
+    this.display = document.createElement('span');
+    this.display.innerText = this.colour === 'white' ? '\u2656' : '\u265C';
   }
 
-  isValidMove(row, column) {
-    if (!super.isValidMove(row, column)) {
+  isValidMove(position) {
+    if (!super.isValidMove(position)) {
       return false;
     }
-    const rowChange = row - this.row;
-    const columnChange = column - this.column;
-    return (rowChange === 0 || columnChange === 0);
+    const rowChange = position[0] - this.position[0];
+    const columnChange = position[1] - this.position[1];
+    return !rowChange || !columnChange;
   }
 
-  isValidCapture(row, column) {
-    this.isValidMove(row, column);
+  isValidCapture(position) {
+    return this.isValidMove(position);
   }
 
-  // getValidMoves(Row, Column) {
-  //   const moves = [];
-  //   // Horizontal movement
-  //   for (let f = Column + 1; f < 8; f++) {
-  //     moves.push([Row, f]);
-  //   }
-  //   for (let f = Column - 1; f >= 0; f--) {
-  //     moves.push([Row, f]);
-  //   }
-  //   // Vertical movement
-  //   for (let r = Row + 1; r < 8; r++) {
-  //     moves.push([r, Column]);
-  //   }
-  //   for (let r = Row - 1; r >= 0; r--) {
-  //     moves.push([r, Column]);
-  //   }
-  //   return moves;
-  // }
+  getMoveList(limit = 8) {
+    const moveList = [];
+    this.moveDirections.foreach(move => {
+      for (i = 1; i < limit; i++) {
+        moveList.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
+      }
+    })
+    return moveList;
+  }
+
+  getCaptureList(limit = 8) {
+    const captureList = [];
+    this.captureDirections.foreach(capture => {
+      for (i = 1; i < limit; i++) {
+        captureList.push([this.position[0] + i * capture[0], this.position[1] + i * capture[1]]);
+      }
+    })
+    return captureList;
+  }
 }
 
 // ---------------- QUEEN ------------------- //
-
 class Queen extends Piece {
-  constructor(colour, row, column) {
+  constructor(colour) {
     super(colour);
-    this.row = row;
-    this.column = column;
     this.value = 9;
-    this.display = document.createElement("span");
-    this.display.innerText = this.colour === "white" ? "\u2655" : "\u265B";
+    this.moveDirections = [
+      [ 1,  0],
+      [ 1,  1],
+      [ 0,  1],
+      [-1,  0],
+      [-1, -1],
+      [ 0, -1],
+      [-1,  1],
+      [ 1, -1]
+    ];
+    this.captureDirections = this.moveDirections;
+    // display
+    this.display = document.createElement('span');
+    this.display.innerText = this.colour === 'white' ? '\u2655' : '\u265B';
   }
 
-  isValidMove(row, column) {
-    if (!super.isValidMove(row, column)) {
+  isValidMove(position) {
+    if (!super.isValidMove(position)) {
       return false;
     }
-    const rowChange = row - this.row;
-    const columnChange = column - this.column;
-    return (columnChange === 0) ||
-    (rowChange === 0) ||
-    Math.abs(columnChange) === Math.abs(rowChange);
+    const rowChange = position[0] - this.position[0];
+    const columnChange = position[1] - this.position[1];
+    return (!(rowChange === 0 && columnChange === 0)) &&
+      (Math.abs(rowChange) === Math.abs(columnChange));
   }
 
-  isValidCapture(row, column) {
-    this.isValidMove(row, column);
+  isValidCapture(position) {
+    return this.isValidMove(position);
   }
 
-  getMoves(boardSize) {
-    const moves = [];
-    // Add all possible moves in the horizontal direction
-    for (let i = this.column + 1; i < boardSize; i++) {
-      moves.push([this.row, i]);
-    }
-    for (let i = this.column - 1; i >= 0; i--) {
-      moves.push([this.row, i]);
-    }
-    // Add all possible moves in the vertical direction
-    for (let i = this.row + 1; i < boardSize; i++) {
-      moves.push([i, this.column]);
-    }
-    for (let i = this.row - 1; i >= 0; i--) {
-      moves.push([i, this.column]);
-    }
-    // Add all possible moves in the diagonal directions
-    for (let i = this.row + 1, j = this.column + 1; i < boardSize && j < boardSize; i++, j++) {
-      moves.push([i, j]);
-    }
-    for (let i = this.row - 1, j = this.column - 1; i >= 0 && j >= 0; i--, j--) {
-      moves.push([i, j]);
-    }
-    for (let i = this.row + 1, j = this.column - 1; i < boardSize && j >= 0; i++, j--) {
-      moves.push([i, j]);
-    }
-    for (let i = this.row - 1, j = this.column + 1; i >= 0 && j < boardSize; i--, j++) {
-      moves.push([i, j]);
-    }
-    return moves;
+  getMoveList(limit = 8) {
+    const moveList = [];
+    this.moveDirections.foreach(move => {
+      for (i = 1; i < limit; i++) {
+        moveList.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
+      }
+    })
+    return moveList;
+  }
+
+  getCaptureList(limit = 8) {
+    const captureList = [];
+    this.captureDirections.foreach(capture => {
+      for (i = 1; i < limit; i++) {
+        captureList.push([this.position[0] + i * capture[0], this.position[1] + i * capture[1]]);
+      }
+    })
+    return captureList;
   }
 }
-
-  // getValidMoves(Row, Column) {
-  //   const moves = [];
-  //   // Horizontal and vertical movement
-  //   for (let f = Column + 1; f < 8; f++) {
-  //     moves.push([Row, f]);
-  //   }
-  //   for (let f = Column - 1; f >= 0; f--) {
-  //     moves.push([Row, f]);
-  //   }
-  //   for (let r = Row + 1; r < 8; r++) {
-  //     moves.push([r, Column]);
-  //   }
-  //   for (let r = Row - 1; r >= 0; r--) {
-  //     moves.push([r, Column]);
-  //   }
-  //   // Diagonal movement
-  //   for (let i = 1; i < 8; i++) {
-  //     // Up-right
-  //     if (Row - i >= 0 && Column + i < 8) {
-  //       moves.push([Row - i, Column + i]);
-  //     }
-  //     // Up-left
-  //     if (Row - i >= 0 && Column - i >= 0) {
-  //       moves.push([Row - i, Column - i]);
-  //     }
-  //     // Down-right
-  //     if (Row + i < 8 && Column + i < 8) {
-  //       moves.push([Row + i, Column + i]);
-  //     }
-  //     // Down-left
-  //     if (Row + i < 8 && Column - i >= 0) {
-  //       moves.push([Row + i, Column - i]);
-  //     }
-  //   }
-  //   return moves;
-  // }
-// }
 
 // -------------------- KING -------------------- //
 
 class King extends Piece {
-  constructor(colour, row, column) {
+  constructor(colour) {
     super(colour);
-    this.row = row;
-    this.column = column;
-    this.display = document.createElement("span");
-    this.display.innerText = this.colour === "white" ? "\u2654" : "\u265A";
+    this.moveDirections = [
+      [ 1,  1],
+      [ 1,  0],
+      [ 1, -1],
+      [ 0,  1],
+      [ 0, -1],
+      [-1,  1],
+      [-1,  0],
+      [-1, -1]
+    ];
+    this.captureDirections = this.moveDirections;
+    // display
+    this.display = document.createElement('span');
+    this.display.innerText = this.colour === 'white' ? '\u2654' : '\u265A';
   }
 
-  isValidMove(row, column) {
-    if (!super.isValidMove(row, column, row, column)) {
+  isValidMove(position) {
+    if (!super.isValidMove(position)) {
       return false;
     }
-    const rowChange = row - this.row;
-    const columnChange = column - this.column;
+    const rowChange = position[0] - this.position[0];
+    const columnChange = position[1] - this.position[1];
     return Math.abs(rowChange) <= 1 && Math.abs(columnChange) <= 1;
   }
 
-  isValidCapture(row, column) {
-    this.isValidMove(row, column);
+  isValidCapture(position) {
+    return this.isValidMove(position);
   }
 
-  // getMoves() {
-  //   return [
-  //     [this.row - 1, this.column],
-  //     [this.row - 1, this.column + 1],
-  //     [this.row, this.column + 1],
-  //     [this.row + 1, this.column + 1],
-  //     [this.row + 1, this.column],
-  //     [this.row + 1, this.column - 1],
-  //     [this.row, this.column - 1],
-  //     [this.row - 1, column - 1],
-  //   ];
-  // }
+  getMoveList() {
+    const moveList = [];
+    this.moveDirections.foreach(move => {
+      moveList.push([this.position[0] + move[0], this.position[1] + move[1]]);
+    })
+    return moveList;
+  }
+
+  getCaptureList() {
+    const captureList = [];
+    this.captureDirections.foreach(capture => {
+      captureList.push([this.position[0] + capture[0], this.position[1] + capture[1]]);
+    })
+    return captureList;
+  }
 }
