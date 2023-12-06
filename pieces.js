@@ -75,26 +75,26 @@ class Pawn extends Piece {
     return false;
   }
 
-  getMoveList(limit = 2) {
-    const moveList = [];
-    this.moveDirections.foreach(move => {
-      for (i = 1; i < limit; i++) {
-        moveList.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
-      }
-    })
-    if (this.moveNum === 0) {
-      moveList.push([this.position[0] + 2 * move[0], this.position[1] + 2 * move[1]])
-    }
-    return moveList;
-  }
+  // getValidMoves(limit = 2) {
+  //   const validMoves = [];
+  //   this.moveDirections.foreach(move => {
+  //     for (i = 1; i < limit; i++) {
+  //       validMoves.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
+  //     }
+  //   })
+  //   if (this.moveNum === 0) {
+  //     validMoves.push([this.position[0] + 2 * move[0], this.position[1] + 2 * move[1]])
+  //   }
+  //   return validMoves;
+  // }
 
-  getCaptureList() {
-    const captureList = [];
-    this.captureDirections.foreach(capture => {
-      captureList.push([this.position[0] + capture[0], this.position[1] + capture[1]]);
-    })
-    return captureList;
-  }
+  // getCaptureList() {
+  //   const validCaptures = [];
+  //   this.captureDirections.foreach(capture => {
+  //     validCaptures.push([this.position[0] + capture[0], this.position[1] + capture[1]]);
+  //   })
+  //   return validCaptures;
+  // }
 }
 
 // ---------------- KNIGHT ---------------- //
@@ -134,21 +134,21 @@ class Knight extends Piece {
     return this.isValidMove(position);
   }
 
-  getMoveList() {
-    const moveList = [];
-    this.moveDirections.foreach(move => {
-      moveList.push([this.position[0] + move[0], this.position[1] + move[1]]);
-    })
-    return moveList;
-  }
+  // getValidMoves() {
+  //   const validMoves = [];
+  //   this.moveDirections.foreach(move => {
+  //     validMoves.push([this.position[0] + move[0], this.position[1] + move[1]]);
+  //   })
+  //   return validMoves;
+  // }
 
-  getCaptureList() {
-    const captureList = [];
-    this.captureDirections.foreach(capture => {
-      captureList.push([this.position[0] + capture[0], this.position[1] + capture[1]]);
-    })
-    return captureList;
-  }
+  // getCaptureList() {
+  //   const validCaptures = [];
+  //   this.captureDirections.foreach(capture => {
+  //     validCaptures.push([this.position[0] + capture[0], this.position[1] + capture[1]]);
+  //   })
+  //   return validCaptures;
+  // }
 }
 
 // --------------- BISHOP ---------------- //
@@ -181,22 +181,24 @@ class Bishop extends Piece {
     return this.isValidMove(position);
   }
 
-  getMoveList(limit = 8) {
-    const moveList = [];
+  getValidMoves(limit = 8) {
+    const validMoves = [];
     this.moveDirections.foreach(move => {
       for (i = 1; i < limit; i++) {
-        moveList.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
+        validMoves.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
       }
     })
+    return validMoves;
   }
 
-  getCaptureList(limit = 8) {
-    const captureList = [];
+  getValidCaptures(limit = 8) {
+    const validCaptures = [];
     this.captureDirections.foreach(capture => {
       for (i = 1; i < limit; i++) {
-        captureList.push([this.position[0] + i * capture[0], this.position[1] + i * capture[1]]);
+        validCaptures.push([this.position[0] + i * capture[0], this.position[1] + i * capture[1]]);
       }
     })
+    return validCaptures;
   }
 }
 
@@ -230,24 +232,24 @@ class Rook extends Piece {
     return this.isValidMove(position);
   }
 
-  getMoveList(limit = 8) {
-    const moveList = [];
+  getValidMoves(limit = 8) {
+    const validMoves = [];
     this.moveDirections.foreach(move => {
       for (i = 1; i < limit; i++) {
-        moveList.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
+        validMoves.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
       }
     })
-    return moveList;
+    return validMoves;
   }
 
-  getCaptureList(limit = 8) {
-    const captureList = [];
+  getValidCaptures(limit = 8) {
+    const validCaptures = [];
     this.captureDirections.foreach(capture => {
       for (i = 1; i < limit; i++) {
-        captureList.push([this.position[0] + i * capture[0], this.position[1] + i * capture[1]]);
+        validCaptures.push([this.position[0] + i * capture[0], this.position[1] + i * capture[1]]);
       }
     })
-    return captureList;
+    return validCaptures;
   }
 }
 
@@ -286,24 +288,24 @@ class Queen extends Piece {
     return this.isValidMove(position);
   }
 
-  getMoveList(limit = 8) {
-    const moveList = [];
+  getValidMoves(limit = 8) {
+    const validMoves = [];
     this.moveDirections.foreach(move => {
       for (i = 1; i < limit; i++) {
-        moveList.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
+        validMoves.push([this.position[0] + i * move[0], this.position[1] + i * move[1]]);
       }
     })
-    return moveList;
+    return validMoves;
   }
 
-  getCaptureList(limit = 8) {
-    const captureList = [];
+  getValidCaptures(limit = 8) {
+    const validCaptures = [];
     this.captureDirections.foreach(capture => {
       for (i = 1; i < limit; i++) {
-        captureList.push([this.position[0] + i * capture[0], this.position[1] + i * capture[1]]);
+        validCaptures.push([this.position[0] + i * capture[0], this.position[1] + i * capture[1]]);
       }
     })
-    return captureList;
+    return validCaptures;
   }
 }
 
@@ -341,19 +343,19 @@ class King extends Piece {
     return this.isValidMove(position);
   }
 
-  getMoveList() {
-    const moveList = [];
+  getValidMoves() {
+    const validMoves = [];
     this.moveDirections.foreach(move => {
-      moveList.push([this.position[0] + move[0], this.position[1] + move[1]]);
+      validMoves.push([this.position[0] + move[0], this.position[1] + move[1]]);
     })
-    return moveList;
+    return validMoves;
   }
 
-  getCaptureList() {
-    const captureList = [];
+  getValidCaptures() {
+    const validCaptures = [];
     this.captureDirections.foreach(capture => {
-      captureList.push([this.position[0] + capture[0], this.position[1] + capture[1]]);
+      validCaptures.push([this.position[0] + capture[0], this.position[1] + capture[1]]);
     })
-    return captureList;
+    return validCaptures;
   }
 }

@@ -50,10 +50,16 @@ class Board {
   }
 
   getPiece(position) {
+    if (!this.isWithinBounds(position)) {
+      return null;
+    }
     return this.position?.at(position[0])?.[position[1]] ?? null;
   }
 
   setPiece(piece, position) {
+    if (!this.isWithinBounds(position)) {
+      return null;
+    }
     this.position.at(position[0])[position[1]] = piece;
     if (piece instanceof Piece) {
       piece.setPosition(position);
@@ -104,41 +110,170 @@ class Board {
       (column >= 0 && column < this.size);
   }
 
-  isBlockedMove(piece, position) {
-    // iterate through move direction
-    // piece.getMoveDirections();
-    // check for any piece in way
-    return null;
-  }
-
-  isValidMove(piece, position) {
-    return this.isWithinBounds(position) &&
-      piece.isValidMove(position) &&
-      !this.isBlockedMove(piece, position);
-  }
-
-  isValidCapture(piece, position) {
-    return true;
+  isAttackedBy(position) {
+    this.position.foreach(piece => {
+      const validCaptures = this.getValidCaptures(piece);
+      if (position in validCaptures) {
+        return piece.colour
+      }
+    })
   }
 
   getValidMoves(piece) {
     const validMoves = [];
-    const moveDirections = this.getPiece(position).getMoveDirections();
-    // iterate through move directions
-    // remove valid moves that are invalid board moves
-    return validMoves;
+    if (piece === null) {
+      return validMoves;
+    }
+    if (piece instanceof Pawn) {
+      piece.moveDirections.foreach(move => {
+        const newPosition = [piece.position[0] + move[0], piece.position[1] + move[1]];
+        if (
+          this.isWithinBounds(newPosition) &&
+          !(this.getPiece(newPosition) instanceof Piece)
+        ) {
+          validMoves.push(newPosition);
+          if (piece.moveNum === 0) {
+            const newPosition = [piece.position[0] + 2 * move[0], piece.position[1] + 2 * move[1]];
+            if (
+              this.isWithinBounds(newPosition) &&
+              !(this.getPiece(newPosition) instanceof Piece)
+            ) {
+              validMoves.push(newPosition);
+            }
+          }
+        }
+      })
+      return validMoves;
+    }
+    else if (piece instanceof Knight) {
+      piece.moveDirections.foreach(move => {
+        const newPosition = [piece.position[0] + move[0], piece.position[1] + move[1]];
+        if (
+          this.isWithinBounds(newPosition) &&
+          !(this.getPiece(newPosition) instanceof Piece)
+        ) {
+          validMoves.push(newPosition);
+        }
+      })
+      return validMoves;
+    }
+    else if (
+      piece instanceof Bishop ||
+      piece instanceof Rook ||
+      piece instanceof Queen
+    ) {
+      piece.moveDirections.foreach(move => {
+        for (i = 1; i < 8; i++) {
+          const newPosition = [piece.position[0] + move[0], piece.position[1] + move[1]];
+          if (
+            this.isWithinBounds(newPosition) &&
+            !(this.getPiece(newPosition) instanceof Piece)
+          ) {
+            validMoves.push(newPosition);
+          }
+          else {
+            break;
+          }
+        }
+      })
+      return validMoves;
+    }
+    else if (
+      piece instanceof King
+    ) {
+      piece.moveDirections.foreach(move => {
+        const newPosition = [piece.position[0] + move[0], piece.position[1] + move[1]];
+        if (
+          this.isWithinBounds(newPosition) &&
+          !(this.getPiece(newPosition) instanceof Piece)
+          // && !this.isAttacked(newPosition)
+        ) {
+          validMoves.push(newPosition)
+        }
+      })
+      return validMoves;
+    }
+    else {
+      return validMoves;
+    }
   }
 
-  getMoveList(piece) {
-    const moveList = [];
-    const moveDirections = this.getMoveDirections();
-    moveDirections.foreach(move => {
-      moveList.push([this.position[0] + move[0], this.position[1] + move[1]]);
-    })
-    if (this.moveNum === 0) {
-      moveList.push([this.position[0] + 2 * move[0], this.position[1] + 2 * move[1]])
+  getValidCaptures(piece) {
+    const validCaptures = [];
+    if (piece === null) {
+      return validCaptures;
     }
-    return moveList;
+    if (piece instanceof Pawn) {
+      piece.captureDirections.foreach(capture => {
+        const newPosition = [piece.position[0] + capture[0], piece.position[1] + capture[1]];
+        const targetPiece = this.getPiece(newPosition);
+        if (
+          this.isWithinBounds(newPosition) &&
+          targetPiece instanceof Piece &&
+          targetPiece.colour !== piece.colour
+        ) {
+          validCaptures.push(newPosition);
+        }
+      })
+      return validCaptures;
+    }
+    else if (piece instanceof Knight) {
+      piece.captureDirections.foreach(capture => {
+        const newPosition = [piece.position[0] + capture[0], piece.position[1] + capture[1]];
+        const targetPiece = this.getPiece(newPosition);
+        if (
+          this.isWithinBounds(newPosition) &&
+          targetPiece instanceof Piece &&
+          targetPiece.colour !== piece.colour
+        ) {
+          validCaptures.push(newPosition);
+        }
+      })
+      return validCaptures;
+    }
+    else if (
+      piece instanceof Bishop ||
+      piece instanceof Rook ||
+      piece instanceof Queen
+    ) {
+      piece.captureDirections.foreach(capture => {
+        for (i = 1; i < 8; i++) {
+          const newPosition = [piece.position[0] + capture[0], piece.position[1] + capture[1]];
+          const targetPiece = this.getPiece(newPosition);
+          if (
+            this.isWithinBounds(newPosition) &&
+            targetPiece instanceof Piece &&
+            targetPiece.colour !== piece.colour
+          ) {
+            validCaptures.push(newPosition);
+          }
+          else {
+            break;
+          }
+        }
+      })
+      return validCaptures;
+    }
+    else if (
+      piece instanceof King
+    ) {
+      piece.captureDirections.foreach(capture => {
+        const newPosition = [piece.position[0] + capture[0], piece.position[1] + capture[1]];
+        const targetPiece = this.getPiece(newPosition);
+        if (
+          this.isWithinBounds(newPosition) &&
+          targetPiece instanceof Piece &&
+          targetPiece.colour !== piece.colour
+          // && !isAttacked(newPosition)
+        ) {
+          validCaptures.push(newPosition)
+        }
+      })
+      return validCaptures;
+    }
+    else {
+      return validCaptures;
+    }
   }
 
   getPieces() { //! replace with foreach
